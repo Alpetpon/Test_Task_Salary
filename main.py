@@ -96,6 +96,19 @@ async def send_welcome(message: types.Message):
     greeting_message = f"Hi {user_mention}!"
     await message.reply( greeting_message, parse_mode='HTML')
 
+@dispatcher.message()
+async def process_message(message: types.Message):
+    try:
+        data = json.loads(message.text)
+        dt_from = datetime.fromisoformat(data["dt_from"])
+        dt_upto = datetime.fromisoformat(data["dt_upto"])
+        group_type = data["group_type"]
+
+        result = await aggregate_data(dt_from, dt_upto, group_type)
+        formatted_result = json.dumps(result, indent=4)
+        await message.reply(formatted_result)
+    except Exception as e:
+        await message.reply(f"Error processing message: {e}")
 
 
 if __name__ == '__main__':
