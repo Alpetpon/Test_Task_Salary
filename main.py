@@ -1,9 +1,9 @@
-import asyncio
 import logging
 import json
-from datetime import datetime, timedelta
 import motor.motor_asyncio
-
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from datetime import datetime, timedelta
 
 
 async def aggregate_data(dt_from, dt_upto, group_type):
@@ -83,3 +83,20 @@ async def aggregate_data(dt_from, dt_upto, group_type):
 
 
 
+logging.basicConfig(level=logging.INFO)
+
+
+
+bot = Bot(token="6609110157:AAH9pF91XMl3z68T4ALdawNj5wToRVjlaAQ")
+dispatcher = Dispatcher()
+
+@dispatcher.message(Command(commands=['start']))
+async def send_welcome(message: types.Message):
+    user_mention = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name} {message.from_user.last_name}</a>'
+    greeting_message = f"Hi {user_mention}!"
+    await message.reply( greeting_message, parse_mode='HTML')
+
+
+
+if __name__ == '__main__':
+    dispatcher.run_polling(bot)
