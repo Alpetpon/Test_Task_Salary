@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+from datetime import datetime, timedelta
 import motor.motor_asyncio
 
 
@@ -50,6 +51,35 @@ async def aggregate_data(dt_from, dt_upto, group_type):
     ]
 
     result = await collection.aggregate(pipeline).to_list(length=None)
+
+    current_date = dt_from
+    date_range = []
+
+    while current_date <= dt_upto:
+        if group_type == 'month':
+            date_range.append(current_date.strftime('%Y-%m-01'))
+            current_date += timedelta(days=31)
+        elif group_type == 'day':
+            date_range.append(current_date.strftime('%Y-%m-%d'))
+            current_date += timedelta(days=1)
+        elif group_type == 'hour':
+            date_range.append(current_date.strftime('%Y-%m-%dT%H:00:00'))
+            current_date += timedelta(hours=1)
+
+    final_result = {'dataset': [], 'labels': []}
+    for date in date_range:
+        found = False
+        formatted_date = datetime.fromisoformat(date).strftime('%Y-%m-%dT%H:%M:%S')
+        final_result['labels'].append(formatted_date)
+        for data in result:
+            if data['labels'] == date:
+                final_result['dataset'].append(data['dataset'])
+                found = True
+                break
+        if not found:
+            final_result['dataset'].append(0)
+
+    return final_result
 
 
 
